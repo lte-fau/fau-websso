@@ -209,7 +209,11 @@ class FAU_WebSSO {
         if (!empty($_attributes)) {
             $attributes['uid'] = isset($_attributes['urn:mace:dir:attribute-def:uid'][0]) ? $_attributes['urn:mace:dir:attribute-def:uid'][0] : '';
             $attributes['mail'] = isset($_attributes['urn:mace:dir:attribute-def:mail'][0]) ? $_attributes['urn:mace:dir:attribute-def:mail'][0] : '';
-            $attributes['displayName'] = isset($_attributes['urn:mace:dir:attribute-def:displayName'][0]) ? $_attributes['urn:mace:dir:attribute-def:displayName'][0] : '';            
+            $attributes['lastname'] = isset($_attributes['urn:mace:dir:attribute-def:sn'][0]) ? $_attributes['urn:mace:dir:attribute-def:sn'][0] : '';
+            $attributes['firstname'] = isset($_attributes['urn:mace:dir:attribute-def:givenName'][0]) ? $_attributes['urn:mace:dir:attribute-def:givenName'][0] : '';
+
+
+            //$attributes['displayName'] = isset($_attributes['urn:mace:dir:attribute-def:displayName'][0]) ? $_attributes['urn:mace:dir:attribute-def:displayName'][0] : '';            
             $attributes['eduPersonAffiliation'] = isset($_attributes['urn:mace:dir:attribute-def:eduPersonAffiliation'][0]) ? $_attributes['urn:mace:dir:attribute-def:eduPersonAffiliation'][0] : '';
             $attributes['eduPersonEntitlement'] = isset($_attributes['urn:mace:dir:attribute-def:eduPersonEntitlement'][0]) ? $_attributes['urn:mace:dir:attribute-def:eduPersonEntitlement'][0] : '';
         }
@@ -220,15 +224,29 @@ class FAU_WebSSO {
 
         $user_login = $attributes['uid'];
 
+
         if ($user_login != substr(sanitize_user($user_login, true), 0, 60)) {
             return $this->simplesaml_login_error(__('Eingegebene Text ist nicht geeignet als Benutzername.', self::textdomain));
         }
         
         $user_email = $attributes['mail'];
-        $display_name = $attributes['displayName'];
-        $display_name_array = explode(' ', $attributes['displayName']);
-        $first_name = array_shift($display_name_array);
-        $last_name = implode(' ', $display_name_array);
+       // $display_name = $attributes['displayName'];
+       // $display_name_array = explode(' ', $attributes['displayName']);
+        $first_name = $attributes['firstname'];
+        $last_name = $attributes['lastname'];
+				$display_name=$first_name." ".$last_name;
+
+//nicename fuer Sync mit univis =email!
+if(!strcmp(strstr($user_email, '@'),"@fau.de"))
+{//user an der fau-> nicename ist Email mit - statt . ohne fau.de
+$nice_name=str_replace('.','_',strstr($user_email, '@', true));
+}
+else
+{//use complete email for nicename without . and @
+$ersetze=array(".","@");
+$nice_name=str_replace($ersetze,"_",$user_email);
+}
+
 
         $edu_person_affiliation = $attributes['eduPersonAffiliation'];
         $edu_person_entitlement = $attributes['eduPersonEntitlement'];
@@ -263,16 +281,31 @@ class FAU_WebSSO {
             	switch_to_blog(1);
 						}
             
+$std_description="<h3>Lebenslauf</h3>
+<p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
+<h3>Arbeitsgebiete</h3>
+<ul>
+<li>Messen</li>
+<li>Forschen</li>
+<li>Reparieren</li>
+</ul>
+<h3>Abschlussarbeiten</h3>
+<p>Bitte melden, falls Interesse an einem der genannten Arbeitsgebiete besteht.</p>";
+
+
             $account_data = array(
                 'user_pass' => wp_generate_password(12, false),
                 'user_login' => $user_login,
                 'user_email' => $user_email,
+                'user_nicename' => $nice_name,
                 'display_name' => $display_name,
+                'nickname' => $last_name,
                 'first_name' => $first_name,
-                'last_name' => $last_name
+                'last_name' => $last_name,
+								'description' => $std_description
             );
-
-            $user_id = wp_insert_user($account_data);
+        
+ $user_id = wp_insert_user($account_data);
 
             if (is_wp_error($user_id)) {
                 return $this->simplesaml_login_error(__('Die Benutzer-Registrierung ist fehlgeschlagen.', self::textdomain));
