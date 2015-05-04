@@ -274,14 +274,16 @@ $nice_name=str_replace($ersetze,"_",$user_email);
             }
                         
             elseif (!is_multisite() && !get_option('users_can_register')) {
-                return $this->simplesaml_login_error(__('Zurzeit ist die Benutzer-Registrierung nicht erlaubt.', self::textdomain));
+               // return $this->simplesaml_login_error(__('Zurzeit ist die Benutzer-Registrierung nicht erlaubt.', self::textdomain));
+				//Allow registration with sso although it is disabled!
             }
 
 						if (is_multisite()) {
             	switch_to_blog(1);
 						}
             
-$std_description="<h3>Lebenslauf</h3>
+$std_description="[:de]
+<h3>Lebenslauf</h3>
 <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
 <h3>Arbeitsgebiete</h3>
 <ul>
@@ -290,8 +292,24 @@ $std_description="<h3>Lebenslauf</h3>
 <li>Reparieren</li>
 </ul>
 <h3>Abschlussarbeiten</h3>
-<p>Bitte melden, falls Interesse an einem der genannten Arbeitsgebiete besteht.</p>";
+<p>Bitte melden, falls Interesse an einem der genannten Arbeitsgebiete besteht.</p>
+[:en]
+<h3>Biography</h3>
+<p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
+<h3>Areas of Interest</h3>
+<ul>
+<li>Measurements</li>
+<li>Research</li>
+<li>Repairing all stuff</li>
+</ul>
+<h3>Open  thesis projetcs</h3>
+<p>Just call me!</p>
+[:]
+";
 
+$bibparser_string="bibtex group=year group_order=desc";
+$bibparser_string.=" author=\"".$first_name." ".$last_name."\"";
+$bibparser_string.=" highlight=\"".$first_name{0}.". ".$last_name."\"";
 
             $account_data = array(
                 'user_pass' => wp_generate_password(12, false),
@@ -302,7 +320,7 @@ $std_description="<h3>Lebenslauf</h3>
                 'nickname' => $last_name,
                 'first_name' => $first_name,
                 'last_name' => $last_name,
-								'description' => $std_description
+				'description' => $std_description
             );
         
  $user_id = wp_insert_user($account_data);
@@ -315,6 +333,7 @@ $std_description="<h3>Lebenslauf</h3>
                 $user = new WP_User($user_id);
                 update_user_meta($user_id, 'edu_person_affiliation', $edu_person_affiliation);
                 update_user_meta($user_id, 'edu_person_entitlement', $edu_person_entitlement);
+                update_user_meta($user_id, 'bibparserstring', $bibparser_string);
             }
         }
 
