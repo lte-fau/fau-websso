@@ -205,18 +205,19 @@ class FAU_WebSSO {
         $attributes = array();
 
         $_attributes = $as->getAttributes();
-
+//print("<pre>");print_r($_attributes);print("</pre>");
         if (!empty($_attributes)) {
-            $attributes['uid'] = isset($_attributes['urn:mace:dir:attribute-def:uid'][0]) ? $_attributes['urn:mace:dir:attribute-def:uid'][0] : '';
-            $attributes['mail'] = isset($_attributes['urn:mace:dir:attribute-def:mail'][0]) ? $_attributes['urn:mace:dir:attribute-def:mail'][0] : '';
-            $attributes['lastname'] = isset($_attributes['urn:mace:dir:attribute-def:sn'][0]) ? $_attributes['urn:mace:dir:attribute-def:sn'][0] : '';
-            $attributes['firstname'] = isset($_attributes['urn:mace:dir:attribute-def:givenName'][0]) ? $_attributes['urn:mace:dir:attribute-def:givenName'][0] : '';
-
-
-            //$attributes['displayName'] = isset($_attributes['urn:mace:dir:attribute-def:displayName'][0]) ? $_attributes['urn:mace:dir:attribute-def:displayName'][0] : '';            
-            $attributes['eduPersonAffiliation'] = isset($_attributes['urn:mace:dir:attribute-def:eduPersonAffiliation'][0]) ? $_attributes['urn:mace:dir:attribute-def:eduPersonAffiliation'][0] : '';
-            $attributes['eduPersonEntitlement'] = isset($_attributes['urn:mace:dir:attribute-def:eduPersonEntitlement'][0]) ? $_attributes['urn:mace:dir:attribute-def:eduPersonEntitlement'][0] : '';
+            $attributes['uid'] = isset($_attributes['uid'][0]) ? $_attributes['uid'][0] : '';
+            $attributes['mail'] = isset($_attributes['mail'][0]) ? $_attributes['mail'][0] : '';
+            $attributes['lastname'] = isset($_attributes['sn'][0]) ? $_attributes['sn'][0] : '';
+            $attributes['firstname'] = isset($_attributes['givenName'][0]) ? $_attributes['givenName'][0] : '';
+						$attributes['eduPersonEntitlement'] = isset($_attributes['eduPersonEntitlement'][0]) ? $_attributes['eduPersonEntitlement'][0] : '';
         }
+
+        if($attributes['eduPersonEntitlement'] !== 'urn:rrze:entitlement:eei:lte')
+        {
+           return $this->simplesaml_login_error(__('Login nur für Mitarbeiter des Lehrstuhls für Technische Elektronik', self::textdomain, false));
+          }
 
         if (empty($attributes)) {
             return $this->simplesaml_login_error(__('Die Benutzerattribute fehlen.', self::textdomain, false));
@@ -230,26 +231,21 @@ class FAU_WebSSO {
         }
         
         $user_email = $attributes['mail'];
-       // $display_name = $attributes['displayName'];
-       // $display_name_array = explode(' ', $attributes['displayName']);
         $first_name = $attributes['firstname'];
         $last_name = $attributes['lastname'];
 				$display_name=$first_name." ".$last_name;
 
-//nicename fuer Sync mit univis =email!
-if(!strcmp(strstr($user_email, '@'),"@fau.de"))
-{//user an der fau-> nicename ist Email mit - statt . ohne fau.de
-$nice_name=str_replace('.','_',strstr($user_email, '@', true));
-}
-else
-{//use complete email for nicename without . and @
-$ersetze=array(".","@");
-$nice_name=str_replace($ersetze,"_",$user_email);
-}
+        //nicename fuer Sync mit univis =email!
+        if(!strcmp(strstr($user_email, '@'),"@fau.de"))
+        {//user an der fau-> nicename ist Email mit - statt . ohne fau.de
+          $nice_name=str_replace('.','_',strstr($user_email, '@', true));
+        }
+        else
+        {//use complete email for nicename without . and @
+          $ersetze=array(".","@");
+          $nice_name=str_replace($ersetze,"_",$user_email);
+        }
 
-
-        $edu_person_affiliation = $attributes['eduPersonAffiliation'];
-        $edu_person_entitlement = $attributes['eduPersonEntitlement'];
 
         $userdata = get_user_by('login', $user_login);
 
@@ -257,11 +253,9 @@ $nice_name=str_replace($ersetze,"_",$user_email);
 
             if ($userdata->user_email == $user_email) {
                 $user = new WP_User($userdata->ID);
-                update_user_meta($userdata->ID, 'edu_person_affiliation', $edu_person_affiliation);
-                update_user_meta($userdata->ID, 'edu_person_entitlement', $edu_person_entitlement);
+                update_user_meta($userdata->ID, 'edu_person_entitlement', $attributes['eduPersonEntitlement']);
             } 
-            
-            else {
+              else {
                 return $this->simplesaml_login_error(sprintf(__('Die IdM-Benutzerdaten sind nicht im Einklang mit den Benutzerdaten der &bdquo;%s&ldquo;-Webseite.', self::textdomain), get_bloginfo('name')));
             }
             
