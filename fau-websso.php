@@ -90,7 +90,7 @@ class FAU_WebSSO {
             $this->force_websso();
         } else {
             add_action('login_enqueue_scripts', array($this, 'login_enqueue_scripts'));
-            add_action('login_form', array($this, 'login_form'));
+            add_action('login_footer', array($this, 'login_form'));
         }
 
         add_filter('manage_users_columns', array($this, 'users_attributes'));
@@ -216,7 +216,7 @@ class FAU_WebSSO {
 
         if($attributes['eduPersonEntitlement'] !== 'urn:rrze:entitlement:eei:lte')
         {
-           return $this->simplesaml_login_error(__('Login nur für Mitarbeiter des Lehrstuhls für Technische Elektronik', self::textdomain, false));
+          // return $this->simplesaml_login_error(__('Login nur für Mitarbeiter des Lehrstuhls für Technische Elektronik', self::textdomain, false));
           }
 
         if (empty($attributes)) {
@@ -276,7 +276,7 @@ class FAU_WebSSO {
             	switch_to_blog(1);
 						}
             
-$std_description="[:de]
+$std_biography="[:de]
 <h3>Lebenslauf</h3>
 <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
 <h3>Arbeitsgebiete</h3>
@@ -314,7 +314,7 @@ $bibparser_string.=" highlight=\"".$first_name{0}.". ".$last_name."\"";
                 'nickname' => $last_name,
                 'first_name' => $first_name,
                 'last_name' => $last_name,
-				'description' => $std_description
+        				'biography' => $$std_biography
             );
         
  $user_id = wp_insert_user($account_data);
@@ -325,8 +325,7 @@ $bibparser_string.=" highlight=\"".$first_name{0}.". ".$last_name."\"";
             
             else {
                 $user = new WP_User($user_id);
-                update_user_meta($user_id, 'edu_person_affiliation', $edu_person_affiliation);
-                update_user_meta($user_id, 'edu_person_entitlement', $edu_person_entitlement);
+                update_user_meta($user_id, 'edu_person_entitlement', $attributes['eduPersonEntitlement']);
                 update_user_meta($user_id, 'bibparserstring', $bibparser_string);
             }
         }
@@ -1064,11 +1063,39 @@ $bibparser_string.=" highlight=\"".$first_name{0}.". ".$last_name."\"";
     }
     
     public function login_form() {
+    echo "<script type=\"text/javascript\">
+    function toggle(){
+    var elem = document.getElementById('loginform');
+    if(elem.style.display == \"none\"){elem.style.display = \"block\";}else{elem.style.display = \"none\";}
+    var elem = document.getElementById('nav');
+    if(elem.style.display == \"none\"){elem.style.display = \"block\";}else{elem.style.display = \"none\";}
+    }</script>";
+    echo "<script type=\"text/javascript\">
+      document.getElementById('loginform').style.display=\"none\";
+      document.getElementById('nav').style.display=\"none\";
+      </script>";
+      echo   "<style>
+              .loginlocal{
+                            margin:auto !important;
+                            position:static;
+                            text-align:center;
+                          }
+             .loginlocal a{
+                          text-decoration: none;
+                            color: #999;
+                          }
+            </style>";
+
+    
+    
         $login_url = add_query_arg('action', 'websso', home_url('/wp-login.php'));
-        echo '<div class="message websso-login">';
-        echo '<p>' . __('Sie haben Ihr IdM-Benutzerkonto bereits aktiviert?', self::textdomain) . '</p>';
-        printf('<p>' . __('Bitte melden Sie sich mittels des folgenden Links an den %s-Webauftritt an.', self::textdomain) . '</p>', get_bloginfo('name'));
-        printf('<p><a href="%1$s">' . __('Anmelden an den %2$s-Webauftritt', self::textdomain) . '</a></p>', $login_url, get_bloginfo('name'));
+        echo '<div style="margin:auto !important;position:static" class="message websso-login">';
+        echo '<p>' . __('IdM-Login', self::textdomain) . '</p>';
+        //printf('<p>' . __('Bitte melden Sie sich mittels des folgenden Links an den %s-Webauftritt an.', self::textdomain) . '</p>', get_bloginfo('name'));
+        printf('<p><a href="%1$s">' . __('Anmelden an %2$s', self::textdomain) . '</a></p>', $login_url, get_bloginfo('name'));
+echo '</div>';
+        echo "<div class=\"loginlocal\">";
+        echo "<a href=\"javascript:toggle()\">".__('Show Local Login Form')."</a>";
         echo '</div>';
     }
 
