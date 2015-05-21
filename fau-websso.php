@@ -314,7 +314,7 @@ $bibparser_string.=" highlight=\"".$first_name{0}.". ".$last_name."\"";
                 'nickname' => $last_name,
                 'first_name' => $first_name,
                 'last_name' => $last_name,
-        				'biography' => $$std_biography
+                'description'=>"user created via fau-websso at ".date("d.m.Y-H:i:s")." UTC",
             );
         
  $user_id = wp_insert_user($account_data);
@@ -327,6 +327,7 @@ $bibparser_string.=" highlight=\"".$first_name{0}.". ".$last_name."\"";
                 $user = new WP_User($user_id);
                 update_user_meta($user_id, 'edu_person_entitlement', $attributes['eduPersonEntitlement']);
                 update_user_meta($user_id, 'bibparserstring', $bibparser_string);
+                update_user_meta($user_id, 'biography', $std_biography);
             }
         }
 
