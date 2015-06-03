@@ -1113,14 +1113,19 @@ echo '</div>';
         
         $attributes = array();
 
-        $edu_person_affiliation = get_user_meta($user_id, 'edu_person_affiliation', true);
+        /*$edu_person_affiliation = get_user_meta($user_id, 'edu_person_affiliation', true);
         if ($edu_person_affiliation) {
             $attributes[] = $edu_person_affiliation;
         }
+        */
         
         $edu_person_entitlement = get_user_meta($user_id, 'edu_person_entitlement', true);
         if ($edu_person_entitlement) {
             $attributes[] = $edu_person_entitlement;
+        }
+        $last_update_ts=get_user_meta($user_id, 'last_profile_update_timestamp',true);
+        if($last_update_ts){
+	         $attributes[] = "Updated: ".date("d.m.Y H:i:s",$last_update_ts);	
         }
         
         return implode(', ', $attributes);
