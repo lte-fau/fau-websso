@@ -314,7 +314,7 @@ $bibparser_string.=" highlight=\"".$first_name{0}.". ".$last_name."\"";
                 'nickname' => $last_name,
                 'first_name' => $first_name,
                 'last_name' => $last_name,
-                'description'=>"user created via fau-websso at ".date("d.m.Y-H:i:s")." UTC",
+                'description'=>"user created via fau-websso at ".date("d.m.Y-H:i:s T"),
             );
         
  $user_id = wp_insert_user($account_data);
@@ -1125,8 +1125,12 @@ echo '</div>';
         }
         $last_update_ts=get_user_meta($user_id, 'last_profile_update_timestamp',true);
         if($last_update_ts){
-	         $attributes[] = "Updated: ".date("d.m.Y H:i:s",$last_update_ts);	
-        }
+          $wp_timezone=get_option('timezone_string');
+          $defaulttimezone=date_default_timezone_get();
+          date_default_timezone_set($wp_timezone);
+          $attributes[] = "Update: ".date("d.m.Y H:i:s T",$last_update_ts);	
+          date_default_timezone_set($defaulttimezone);
+	}
         
         return implode(', ', $attributes);
     }
