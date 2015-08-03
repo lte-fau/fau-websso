@@ -211,12 +211,14 @@ class FAU_WebSSO {
             $attributes['mail'] = isset($_attributes['mail'][0]) ? $_attributes['mail'][0] : '';
             $attributes['lastname'] = isset($_attributes['sn'][0]) ? $_attributes['sn'][0] : '';
             $attributes['firstname'] = isset($_attributes['givenName'][0]) ? $_attributes['givenName'][0] : '';
-						$attributes['eduPersonEntitlement'] = isset($_attributes['eduPersonEntitlement'][0]) ? $_attributes['eduPersonEntitlement'][0] : '';
+	    $attributes['eduPersonEntitlement'] = isset($_attributes['eduPersonEntitlement']) ? $_attributes['eduPersonEntitlement'] : '';
         }
 
-        if($attributes['eduPersonEntitlement'] !== 'urn:rrze:entitlement:eei:lte')
+
+$allowed_users=array('');//für ausnahmen
+        if(!(in_array('urn:rrze:entitlement:eei:lte',$attributes['eduPersonEntitlement'])||in_array($attributes['uid'],$allowed_users)))
         {
-          // return $this->simplesaml_login_error(__('Login nur für Mitarbeiter des Lehrstuhls für Technische Elektronik', self::textdomain, false));
+           return $this->simplesaml_login_error(__('Login nur für Mitarbeiter des Lehrstuhls für Technische Elektronik', self::textdomain, false));
           }
 
         if (empty($attributes)) {
@@ -253,7 +255,8 @@ class FAU_WebSSO {
 
             if ($userdata->user_email == $user_email) {
                 $user = new WP_User($userdata->ID);
-                update_user_meta($userdata->ID, 'edu_person_entitlement', $attributes['eduPersonEntitlement']);
+                update_user_meta($userdata->ID, 'edu_person_entitlement', substr($attributes['eduPersonEntitlement'][1],25));
+                update_user_meta($user_id, 'entitlement_raw', $attributes['eduPersonEntitlement']);
             } 
               else {
                 return $this->simplesaml_login_error(sprintf(__('Die IdM-Benutzerdaten sind nicht im Einklang mit den Benutzerdaten der &bdquo;%s&ldquo;-Webseite.', self::textdomain), get_bloginfo('name')));
@@ -325,7 +328,8 @@ $bibparser_string.=" highlight=\"".$first_name{0}.". ".$last_name."\"";
             
             else {
                 $user = new WP_User($user_id);
-                update_user_meta($user_id, 'edu_person_entitlement', $attributes['eduPersonEntitlement']);
+                update_user_meta($user_id, 'edu_person_entitlement', substr($attributes['eduPersonEntitlement'][1],25));
+                update_user_meta($user_id, 'entitlement_raw', $attributes['eduPersonEntitlement']);
                 update_user_meta($user_id, 'bibparserstring', $bibparser_string);
                 update_user_meta($user_id, 'biography', $std_biography);
             }
