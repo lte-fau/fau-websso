@@ -305,7 +305,7 @@ $std_biography="[:de]
 ";
 
 $bibparser_string="bibtex group=year group_order=desc";
-$bibparser_string.=" author=\"".$first_name." ".$last_name."\"";
+$bibparser_string.=" author=\"".$last_name.", ".$first_name."\"";
 $bibparser_string.=" highlight=\"".$first_name{0}.". ".$last_name."\"";
 
             $account_data = array(
